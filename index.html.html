@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>On-Call Schedule | Amusement Connect</title>
+<style>
+  :root{
+    --navy: #10233d;
+    --navy-deep: #0a1826;
+    --slate: #4a5a6d;
+    --paper: #f4f6f8;
+    --card: #ffffff;
+    --line: #dde3e9;
+    --dev: #2f6fed;
+    --dev-bg: #eaf1fe;
+    --sys: #7a4fd6;
+    --sys-bg: #f2ecfc;
+    --fw: #c2760f;
+    --fw-bg: #fbf0dd;
+    --good: #1a8f5e;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--navy-deep);
+    font-family:"Segoe UI", "Segoe UI Web", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1080px;margin:0 auto;padding:28px 24px 60px;}
+
+  .masthead{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    border-bottom:3px solid var(--navy);
+    padding-bottom:14px;
+    margin-bottom:6px;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  .masthead h1{
+    font-size:22px;
+    letter-spacing:0.2px;
+    margin:0;
+    font-weight:700;
+    color:var(--navy-deep);
+  }
+  .masthead .org{
+    font-size:13px;
+    color:var(--slate);
+    font-weight:600;
+  }
+  .updated{
+    font-size:12px;
+    color:var(--slate);
+    margin:8px 0 28px;
+  }
+
+  .hero-label{
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:1.6px;
+    text-transform:uppercase;
+    color:var(--slate);
+    margin-bottom:2px;
+  }
+  .hero-range{
+    font-size:19px;
+    font-weight:700;
+    color:var(--navy-deep);
+    margin-bottom:18px;
+  }
+
+  .cards{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:16px;
+    margin-bottom:36px;
+  }
+  @media (max-width:720px){ .cards{grid-template-columns:1fr;} }
+
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:18px 18px 16px;
+    border-top:4px solid var(--chan-color);
+    box-shadow:0 1px 2px rgba(16,35,61,0.04);
+  }
+  .card.dev{ --chan-color:var(--dev); }
+  .card.sys{ --chan-color:var(--sys); }
+  .card.fw{ --chan-color:var(--fw); }
+
+  .chan-tag{
+    display:inline-block;
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:0.6px;
+    text-transform:uppercase;
+    color:var(--chan-color);
+    background:color-mix(in srgb, var(--chan-color) 12%, white);
+    padding:3px 9px;
+    border-radius:5px;
+    margin-bottom:12px;
+  }
+  .name{
+    font-size:19px;
+    font-weight:700;
+    color:var(--navy-deep);
+    margin-bottom:6px;
+    line-height:1.25;
+  }
+  .phone{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    font-size:14px;
+    font-weight:600;
+    color:var(--navy);
+    text-decoration:none;
+  }
+  .phone:hover{ text-decoration:underline; }
+  .phone svg{ width:14px; height:14px; fill:var(--chan-color); flex-shrink:0; }
+
+  .section-title{
+    font-size:13px;
+    font-weight:700;
+    letter-spacing:0.8px;
+    text-transform:uppercase;
+    color:var(--slate);
+    margin:0 0 12px;
+  }
+
+  table{
+    width:100%;
+    border-collapse:collapse;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:10px;
+    overflow:hidden;
+    font-size:14px;
+  }
+  thead th{
+    text-align:left;
+    background:var(--navy-deep);
+    color:#fff;
+    font-weight:600;
+    font-size:12px;
+    letter-spacing:0.4px;
+    padding:11px 14px;
+  }
+  tbody td{
+    padding:11px 14px;
+    border-top:1px solid var(--line);
+    color:var(--navy-deep);
+  }
+  tbody tr.current{
+    background: #eef6f1;
+  }
+  tbody tr.current td:first-child{
+    box-shadow: inset 3px 0 0 var(--good);
+  }
+  .wk-badge{
+    font-size:10px;
+    font-weight:700;
+    color:var(--good);
+    letter-spacing:0.5px;
+    text-transform:uppercase;
+    margin-left:8px;
+  }
+  .cell-name{ font-weight:600; }
+  .cell-phone{
+    display:block;
+    font-size:12px;
+    color:var(--slate);
+    text-decoration:none;
+    margin-top:1px;
+  }
+  .cell-phone:hover{ text-decoration:underline; }
+
+  .footnote{
+    margin-top:22px;
+    font-size:12.5px;
+    color:var(--slate);
+    line-height:1.6;
+    border-top:1px solid var(--line);
+    padding-top:16px;
+  }
+  .footnote b{ color:var(--navy-deep); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="masthead">
+    <h1>On-Call Schedule</h1>
+    <div class="org">Amusement Connect &mdash; Engineering &amp; Operations</div>
+  </div>
+  <div class="updated" id="updatedLine"></div>
+
+  <div class="hero-label">Current rotation</div>
+  <div class="hero-range" id="heroRange">&nbsp;</div>
+
+  <div class="cards" id="heroCards"></div>
+
+  <div class="section-title">Upcoming rotation (8 weeks)</div>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:22%;">Week of</th>
+        <th style="width:26%;">Development</th>
+        <th style="width:26%;">System</th>
+        <th style="width:26%;">Firmware</th>
+      </tr>
+    </thead>
+    <tbody id="scheduleBody"></tbody>
+  </table>
+
+  <div class="footnote">
+    <b>Rotation rules:</b> each channel rotates a single on-call contact Monday&ndash;Sunday. Development
+    cycles through a five-person pool (Danilo, Derek, Josh, Zach, and Kyle Downs); System and Firmware
+    alternate two-person pools (Bryan / Kyle, and Mike / William). No one is ever scheduled on two channels
+    in the same week &mdash; Kyle Downs is the only person on more than one pool, so on the rare week his
+    Development turn would coincide with his System turn, Development automatically shifts to the next
+    person in line. No one repeats on-call in back-to-back weeks <i>within the same channel</i>; back-to-back
+    weeks are allowed when they're different channels (e.g. Kyle on System one week and Development the next).<br>
+    <b>Escalation:</b> Lisa Meinen-Doerksen (913-486-0565) supports all channels and is the point of contact
+    if the scheduled on-call contact cannot be reached.
+  </div>
+
+</div>
+
+<script>
+const PHONE_ICON = '<svg viewBox="0 0 24 24"><path d="M6.62 10.79a15.09 15.09 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.01-.24 11.3 11.3 0 0 0 3.53.56 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.3 11.3 0 0 0 .56 3.53 1 1 0 0 1-.25 1.01l-2.19 2.2z"/></svg>';
+
+// Pools. Kyle Downs appears in both Development and System, so week-by-week
+// logic below guarantees he's never double-booked in the same week.
+const DEV_POOL = [
+  { name: 'Danilo Souza',  phone: '816-945-0199' },
+  { name: 'Derek Smith',   phone: '816-591-5298' },
+  { name: 'Josh Porter',   phone: '785-789-2315' },
+  { name: 'Zach McNulty',  phone: '816-223-8338' },
+  { name: 'Kyle Downs',    phone: '816-863-4033' }
+];
+const SYS_POOL = [
+  { name: 'Bryan Hunt',  phone: '816-286-9949' },
+  { name: 'Kyle Downs',  phone: '816-863-4033' }
+];
+const FW_POOL = [
+  { name: 'Mike Farnet',     phone: '913-206-4159' },
+  { name: 'William Thomsen', phone: '816-328-5613' }
+];
+
+const CHANNELS_META = [
+  { key: 'dev', label: 'Development', className: 'dev', personFn: devPersonForWeek },
+  { key: 'sys', label: 'System',      className: 'sys', personFn: sysPersonForWeek },
+  { key: 'fw',  label: 'Firmware',    className: 'fw',  personFn: fwPersonForWeek }
+];
+
+function mod(n, m){ return ((n % m) + m) % m; }
+
+function sysPersonForWeek(w){ return SYS_POOL[mod(w, 2)]; }
+function fwPersonForWeek(w){ return FW_POOL[mod(w, 2)]; }
+
+function devPersonForWeek(w){
+  let i = mod(w, 5);
+  let candidate = DEV_POOL[i];
+  const sysPick = sysPersonForWeek(w);
+  // Kyle is shared between Development and System — if his Development turn
+  // lands on the same week as his System turn, shift Development two slots
+  // ahead so it never repeats the person from the week immediately before
+  // or after.
+  if (candidate.name === sysPick.name){
+    i = mod(i + 2, 5);
+    candidate = DEV_POOL[i];
+  }
+  return candidate;
+}
+
+// Anchor: Jan 1, 2024 is a Monday. All rotations are indexed off whole weeks
+// elapsed since this anchor, so the page always derives the correct on-call
+// contact from today's date with no manually maintained table.
+const ANCHOR_MONDAY = Date.UTC(2024, 0, 1);
+const MS_WEEK = 7 * 24 * 60 * 60 * 1000;
+
+function mondayOf(date){
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const day = d.getUTCDay(); // 0 Sun .. 6 Sat
+  const diff = (day === 0 ? -6 : 1 - day); // shift back to Monday
+  d.setUTCDate(d.getUTCDate() + diff);
+  return d;
+}
+
+function weekIndexFor(mondayDate){
+  return Math.round((mondayDate.getTime() - ANCHOR_MONDAY) / MS_WEEK);
+}
+
+function fmtRange(monday){
+  const sunday = new Date(monday);
+  sunday.setUTCDate(sunday.getUTCDate() + 6);
+  const opts = { month: 'short', day: 'numeric' };
+  const startStr = monday.toLocaleDateString('en-US', opts);
+  const endOpts = monday.getUTCMonth() === sunday.getUTCMonth() ? { day: 'numeric' } : opts;
+  const endStr = sunday.toLocaleDateString('en-US', endOpts);
+  return `${startStr}\u2013${endStr}, ${sunday.getUTCFullYear()}`;
+}
+
+function telHref(phone){
+  return 'tel:+1' + phone.replace(/[^0-9]/g, '');
+}
+
+function render(){
+  const today = new Date();
+  const currentMonday = mondayOf(today);
+  const currentWeekIndex = weekIndexFor(currentMonday);
+
+  document.getElementById('updatedLine').textContent =
+    'Auto-calculated from today\u2019s date \u2014 ' +
+    today.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+
+  document.getElementById('heroRange').textContent = 'Week of ' + fmtRange(currentMonday);
+
+  const heroCards = document.getElementById('heroCards');
+  heroCards.innerHTML = CHANNELS_META.map(ch => {
+    const person = ch.personFn(currentWeekIndex);
+    return `
+      <div class="card ${ch.className}">
+        <span class="chan-tag">${ch.label}</span>
+        <div class="name">${person.name}</div>
+        <a class="phone" href="${telHref(person.phone)}">${PHONE_ICON}${person.phone}</a>
+      </div>`;
+  }).join('');
+
+  const bodyRows = [];
+  for (let offset = -1; offset <= 7; offset++){
+    const wIdx = currentWeekIndex + offset;
+    const monday = new Date(ANCHOR_MONDAY + wIdx * MS_WEEK);
+    const isCurrent = offset === 0;
+    const cells = CHANNELS_META.map(ch => {
+      const p = ch.personFn(wIdx);
+      return `<td><span class="cell-name">${p.name}</span><a class="cell-phone" href="${telHref(p.phone)}">${p.phone}</a></td>`;
+    }).join('');
+    bodyRows.push(
+      `<tr class="${isCurrent ? 'current' : ''}">
+        <td>${fmtRange(monday)}${isCurrent ? '<span class="wk-badge">This week</span>' : ''}</td>
+        ${cells}
+      </tr>`
+    );
+  }
+  document.getElementById('scheduleBody').innerHTML = bodyRows.join('');
+}
+
+render();
+// Re-render if the tab is left open across a day/week boundary.
+setInterval(render, 60 * 60 * 1000);
+</script>
+</body>
+</html>
