@@ -1,0 +1,12 @@
+{
+  "name": "family-carpool",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Week-by-week driving plan for children's practices and games, with driver conflict and carpool flags.",
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test"
+  }
+}
