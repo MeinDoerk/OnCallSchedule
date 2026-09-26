@@ -44,6 +44,21 @@ function h(tag, props, ...kids) {
   return el;
 }
 
+// In-page confirmation (browser confirm() pop-ups are blocked in some viewers).
+function askConfirm(message, action = 'Delete') {
+  const box = document.getElementById('confirm');
+  return new Promise((resolve) => {
+    const done = (answer) => { box.close(); resolve(answer); };
+    box.replaceChildren(h('div', { class: 'dialog-form' },
+      h('p', { class: 'confirm-text' }, message),
+      h('div', { class: 'row end' },
+        h('button', { type: 'button', class: 'btn', onclick: () => done(false) }, 'Cancel'),
+        h('button', { type: 'button', class: 'btn danger', onclick: () => done(true) }, action))));
+    box.onclose = () => resolve(false);
+    box.showModal();
+  });
+}
+
 // ---------- formatting ----------
 
 const fmtTime = (d) => new Date(d).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
@@ -525,7 +540,7 @@ function teamCard(team) {
         h('button', { class: 'btn', onclick: () => openEventDialog(null, team.id) }, '+ Event'),
         h('button', {
           class: 'btn danger-ghost',
-          onclick: () => { if (confirm(`Delete ${team.name} and all of its events?`)) commit((s) => removeTeam(s, team.id)); },
+          onclick: async () => { if (await askConfirm(`Delete ${team.name} and all of its events?`)) commit((s) => removeTeam(s, team.id)); },
         }, 'Delete'))),
 
     h('div', { class: 'team-body' },
@@ -618,7 +633,7 @@ function openEventDialog(event, teamId) {
   h('div', { class: 'row end' },
     !isNew && !locked ? h('button', {
       type: 'button', class: 'btn danger-ghost',
-      onclick: () => { if (confirm('Delete this event?')) { commit((s) => removeEvent(s, event.id)); dialog.close(); } },
+      onclick: async () => { dialog.close(); if (await askConfirm('Delete this event?')) commit((s) => removeEvent(s, event.id)); },
     }, 'Delete') : null,
     h('span', { class: 'grow' }),
     h('button', { type: 'button', class: 'btn', onclick: () => dialog.close() }, 'Cancel'),
@@ -666,7 +681,7 @@ function looseRow(person, type) {
     }, h('option', { value: '' }, 'Add to family…'), state.families.map((f) => h('option', { value: f.id }, f.name))) : null,
     h('button', {
       class: 'btn small danger-ghost',
-      onclick: () => { if (confirm(`Delete ${person.name} permanently?`)) commit((s) => (type === 'child' ? removeChild(s, person.id) : removeDriver(s, person.id))); },
+      onclick: async () => { if (await askConfirm(`Delete ${person.name} permanently?`)) commit((s) => (type === 'child' ? removeChild(s, person.id) : removeDriver(s, person.id))); },
     }, 'Delete'));
 }
 
@@ -703,8 +718,8 @@ function familyCard(family) {
       }),
       h('button', {
         class: 'btn small danger-ghost',
-        onclick: () => {
-          if (!confirm(`Delete the ${family.name} family? Its children and drivers will be kept under “Not in a family”.`)) return;
+        onclick: async () => {
+          if (!(await askConfirm(`Delete the ${family.name} family? Its children and drivers will be kept under “Not in a family”.`))) return;
           commit((s) => {
             s.families = s.families.filter((f) => f.id !== family.id);
             for (const p of [...s.children, ...s.drivers]) if (p.familyId === family.id) p.familyId = null;
@@ -739,8 +754,14 @@ function familyCard(family) {
 
 async function start() {
   state = await store.load();
+  if (window.CARPOOL_PREVIEW && !state.teams.length && !state.families.length) {
+    state = { ...sampleState(), version: 0 };
+  }
   render();
-  if (store.mode === 'local') {
+  if (window.CARPOOL_PREVIEW) {
+    ui.notice = { text: 'Preview with sample families. Your changes stay in this browser only. Calendar links need the full app, but you can import a downloaded .ics file.', type: 'info' };
+    render();
+  } else if (store.mode === 'local') {
     notify('Running without the app server: changes are saved in this browser only, and calendar links may not load.', 'warn');
   }
   for (const t of state.teams) {

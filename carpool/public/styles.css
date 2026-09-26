@@ -23,6 +23,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
+    color-scheme: dark;
     --bg: #0f1520;
     --card: #182130;
     --ink: #e8edf4;
@@ -42,6 +43,27 @@
     --warn-bg: #3a2f15;
     --shadow: none;
   }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0f1520;
+  --card: #182130;
+  --ink: #e8edf4;
+  --ink-2: #aeb9c7;
+  --ink-3: #7f8b9b;
+  --line: #2a3546;
+  --accent: #5b8ef5;
+  --game: #f59f63;
+  --game-bg: #3a2517;
+  --practice: #8db1f7;
+  --practice-bg: #1c2a45;
+  --conflict: #ff8787;
+  --conflict-bg: #3b1c1f;
+  --share: #63d3a4;
+  --share-bg: #15332a;
+  --warn: #f1c36a;
+  --warn-bg: #3a2f15;
+  --shadow: none;
 }
 
 * { box-sizing: border-box; }
@@ -66,7 +88,7 @@ main.wrap { padding-top: 20px; padding-bottom: 60px; }
 .warn-text { color: var(--warn); }
 
 /* Top bar */
-.topbar { background: var(--card); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 5; }
+.topbar { background: var(--card); border-bottom: 1px solid var(--line); position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; }
 .topbar-inner { display: flex; align-items: center; gap: 16px; min-height: 58px; flex-wrap: wrap; }
 .brand { font-weight: 750; font-size: 17px; display: flex; align-items: center; gap: 9px; margin-right: auto; }
 .brand-mark { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; background: var(--accent); color: #fff; font-size: 17px; }
@@ -87,6 +109,7 @@ main.wrap { padding-top: 20px; padding-bottom: 60px; }
 .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
 .btn.primary:hover { filter: brightness(1.07); }
 .btn.ghost { border-color: transparent; background: transparent; }
+.btn.danger { background: var(--conflict); border-color: var(--conflict); color: #fff; }
 .btn.danger-ghost { border-color: transparent; background: transparent; color: var(--conflict); }
 .btn.danger-ghost:hover { background: var(--conflict-bg); }
 .btn.small { padding: 4px 10px; font-size: 13px; }
@@ -233,3 +256,5 @@ dialog::backdrop { background: rgba(10, 18, 30, 0.45); }
 .dialog-form h2 { font-size: 19px; margin-bottom: 14px; }
 .dialog-form > .help { margin: -6px 0 14px; }
 .dialog-form .row.end { margin-top: 10px; }
+dialog.confirm { width: min(420px, calc(100vw - 32px)); }
+.confirm-text { margin: 0 0 8px; font-size: 16px; }
